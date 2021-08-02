@@ -14,6 +14,9 @@ class RequestMiddleware(MiddlewareMixin):
         if response.status_code < 400 and settings.ONLY_ERRORS:
             return response
 
+        if response.status_code in settings.IGNORE_STATUS_CODES:
+            return response
+        
         ignore = Patterns(False, *settings.IGNORE_PATHS)
         if ignore.resolve(request.path[1:]):
             return response
@@ -31,7 +34,7 @@ class RequestMiddleware(MiddlewareMixin):
         if getattr(request, 'user', False):
             if request.user.get_username() in settings.IGNORE_USERNAME:
                 return response
-
+            
         r = Request()
         r.from_http_request(request, response)
 
