@@ -1,18 +1,40 @@
 # Changelog for django-request
 
+## 1.6.1
+
+### Enhancements
+
+* Adds warning logging to middleware on invalid IP addresses in
+  ``REMOTE_ADDR``.
+
+### Bug Fixes
+
+* Adds a missing migration to change ``help_text`` of ``Request.is_ajax``.
+
 ## 1.6.0
 
 ### Breaking
 
-* Support for Django 1.11, 2.0, and 2.1 has been dropped.
+* Support for Django 1.11, 2.0, 2.1, 3.0, and 3.1 has been dropped.
 
 * Support for Python 2.7 and 3.4 has been dropped.
 
 ### Enhancements
 
+* Adds [htmx](https://htmx.org/) support to the ``REQUEST_IGNORE_AJAX``
+  setting.
+
+* Confirms support for Django 4.0.
+
 * Confirms support for Django 3.2.
 
+* Confirms support for Python 3.10.
+
 * Confirms support for Python 3.9.
+
+### Bug Fixes
+
+* Fixes middleware crash on invalid IP addresses in ``REMOTE_ADDR``.
 
 ## 1.5.6.
 

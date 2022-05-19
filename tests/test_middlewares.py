@@ -90,6 +90,16 @@ class RequestMiddlewareTest(TestCase):
         self.middleware(request)
         self.assertEqual(1, Request.objects.count())
 
+    @mock.patch('request.middleware.settings.IGNORE_AJAX', True)
+    def test_dont_record_htmx(self):
+        request = self.factory.get('/foo')
+        # Non-htmx
+        self.middleware(request)
+        # htmx
+        request.META['HTTP_HX_REQUEST'] = 'true'
+        self.middleware(request)
+        self.assertEqual(Request.objects.count(), 1)
+
     @mock.patch('request.middleware.settings.IGNORE_AJAX',
                 False)
     def test_record_ajax(self):
@@ -100,6 +110,16 @@ class RequestMiddlewareTest(TestCase):
         request.META['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
         self.middleware(request)
         self.assertEqual(2, Request.objects.count())
+
+    @mock.patch('request.middleware.settings.IGNORE_AJAX', False)
+    def test_record_htmx(self):
+        request = self.factory.get('/foo')
+        # Non-htmx
+        self.middleware(request)
+        # htmx
+        request.META['HTTP_HX_REQUEST'] = 'true'
+        self.middleware(request)
+        self.assertEqual(Request.objects.count(), 2)
 
     @mock.patch('request.middleware.settings.IGNORE_IP',
                 ('1.2.3.4',))
@@ -112,6 +132,17 @@ class RequestMiddlewareTest(TestCase):
         request.META['REMOTE_ADDR'] = '5.6.7.8'
         self.middleware(request)
         self.assertEqual(1, Request.objects.count())
+
+    def test_invalid_addr(self):
+        request = self.factory.get('/foo')
+        request.META['REMOTE_ADDR'] = 'invalid-addr'
+        with self.assertLogs('request.security.middleware', 'WARNING') as cm:
+            self.middleware(request)
+        self.assertIn(
+            "Bad request: {'ip': ['Enter a valid IPv4 or IPv6 address.']}",
+            cm.output[0],
+        )
+        self.assertEqual(Request.objects.count(), 0)
 
     @mock.patch('request.middleware.settings.IGNORE_USER_AGENTS',
                 (r'^.*Foo.*$',))
